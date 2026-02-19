@@ -1,6 +1,6 @@
 # Neovim Configuration
 
-My personal Neovim configuration, primarily set up for **Rust development**.
+My personal Neovim configuration, primarily set up for **Rust development**(mostly).
 
 ## Features
 
@@ -14,6 +14,7 @@ My personal Neovim configuration, primarily set up for **Rust development**.
 - **Auto-save**: Enabled
 
 ## Installation
+(Make sure to backup any existing nvim-config)
 
 ```bash
 git clone https://github.com/vinaaaaay/nvim-config.git ~/.config/nvim
