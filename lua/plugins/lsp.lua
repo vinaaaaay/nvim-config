@@ -29,8 +29,31 @@ return {
       vim.g.lsp_on_attach = on_attach
       vim.g.lsp_capabilities = capabilities
 
-      -- Add other language servers here as needed
-      -- Example: lspconfig.lua_ls.setup({ capabilities = capabilities, on_attach = on_attach })
+      -- Python: Pyright for type checking and intellisense
+      lspconfig.pyright.setup({
+        capabilities = capabilities,
+        on_attach = on_attach,
+        settings = {
+          python = {
+            analysis = {
+              typeCheckingMode = "basic",
+              autoSearchPaths = true,
+              useLibraryCodeForTypes = true,
+              diagnosticMode = "workspace",
+            },
+          },
+        },
+      })
+
+      -- Python: Ruff for linting diagnostics
+      lspconfig.ruff.setup({
+        capabilities = capabilities,
+        on_attach = function(client, bufnr)
+          -- Disable hover in favor of pyright
+          client.server_capabilities.hoverProvider = false
+          on_attach(client, bufnr)
+        end,
+      })
     end,
   },
 
