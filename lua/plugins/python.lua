@@ -30,10 +30,8 @@ return {
   {
     "linux-cultist/venv-selector.nvim",
     dependencies = {
-      "neovim/nvim-lspconfig",
       "nvim-telescope/telescope.nvim",
     },
-    branch = "regexp",
     ft = "python",
     keys = {
       { "<leader>ps", "<cmd>VenvSelect<cr>", desc = "Python: Select Venv" },

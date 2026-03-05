@@ -1,62 +1,4 @@
 return {
-  {
-    "neovim/nvim-lspconfig",
-    dependencies = {
-      "hrsh7th/cmp-nvim-lsp",
-    },
-    config = function()
-      local lspconfig = require("lspconfig")
-      local capabilities = require("cmp_nvim_lsp").default_capabilities()
-
-      -- Common on_attach function for LSP keymaps
-      local on_attach = function(client, bufnr)
-        local opts = { buffer = bufnr, remap = false }
-
-        vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-        vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-        vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-        vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-        vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-        vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
-        vim.keymap.set("n", "<leader>vd", vim.diagnostic.open_float, opts)
-        vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-        vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
-        vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
-      end
-
-      -- Store on_attach globally for rustaceanvim
-      vim.g.lsp_on_attach = on_attach
-      vim.g.lsp_capabilities = capabilities
-
-      -- Python: Pyright for type checking and intellisense
-      lspconfig.pyright.setup({
-        capabilities = capabilities,
-        on_attach = on_attach,
-        settings = {
-          python = {
-            analysis = {
-              typeCheckingMode = "basic",
-              autoSearchPaths = true,
-              useLibraryCodeForTypes = true,
-              diagnosticMode = "workspace",
-            },
-          },
-        },
-      })
-
-      -- Python: Ruff for linting diagnostics
-      lspconfig.ruff.setup({
-        capabilities = capabilities,
-        on_attach = function(client, bufnr)
-          -- Disable hover in favor of pyright
-          client.server_capabilities.hoverProvider = false
-          on_attach(client, bufnr)
-        end,
-      })
-    end,
-  },
-
   -- Autocompletion
   {
     "hrsh7th/nvim-cmp",
@@ -70,6 +12,57 @@ return {
     config = function()
       local cmp = require("cmp")
       local luasnip = require("luasnip")
+
+      -- Add cmp_nvim_lsp capabilities to all LSP servers via the native API
+      local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
+      vim.lsp.config("*", {
+        capabilities = cmp_capabilities,
+      })
+
+      -- Enable Python LSP servers (configs are in ~/.config/nvim/lsp/)
+      vim.lsp.enable({ "pyright", "ruff" })
+
+      -- LspAttach autocmd for keymaps (replaces per-server on_attach)
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          local bufnr = args.buf
+          local opts = { buffer = bufnr, remap = false }
+
+          -- Disable hover from ruff (pyright handles it)
+          if client and client.name == "ruff" then
+            client.server_capabilities.hoverProvider = false
+          end
+
+          vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+          vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+          vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+          vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+          vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+          vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+          vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
+          vim.keymap.set("n", "<leader>vd", vim.diagnostic.open_float, opts)
+          vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
+          vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+          vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
+        end,
+      })
+
+      -- Store on_attach reference for rustaceanvim (it manages its own LSP)
+      vim.g.lsp_on_attach = function(client, bufnr)
+        local opts = { buffer = bufnr, remap = false }
+        vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+        vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+        vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+        vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+        vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+        vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
+        vim.keymap.set("n", "<leader>vd", vim.diagnostic.open_float, opts)
+        vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
+        vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+        vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
+      end
 
       cmp.setup({
         snippet = {
